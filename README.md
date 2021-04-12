@@ -1,6 +1,6 @@
 # truncnorm
 
-truncnorm is a library for estimating statistics of and sampling from truncated Normal and Student's t-distributions. Authored by Eleanor Quint
+truncnorm is a library for estimating statistics of and sampling from truncated Normal and Student's t-distributions. Implemented by Eleanor Quint
 
 This package is a port of the Truncated Normal and Student's t-distribution toolbox in Matlab. No guarantees are provided as to their equivalence.
 
