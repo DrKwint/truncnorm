@@ -11,7 +11,7 @@ The original toolbox includes:
 
 ### API
 
-- `mv_normal_cdf(l, u, sigma, n)`: CDF of the truncated multivariate normal cumulative distribution. Computes an estimator of the probability $Pr(l<X<u)$, where $X$ is a zero-mean multivariate normal vector with covariance matrix $\Sig$, that is, $X~N(0,\Sig)$. For $Y~N(m,Sig)$, call with `mvNcdf(Sig,l-m,u-m,n)`.
+- `mv_normal_cdf(l, u, sigma, n)`: CDF of the truncated multivariate normal cumulative distribution. Computes an estimator of the probability $Pr(l<X<u)$, where $X$ is a zero-mean multivariate normal vector with covariance matrix $\Sig$, that is, $X\~N(0,\Sig)$. For $Y\~N(m,Sig)$, call with `mvNcdf(Sig,l-m,u-m,n)`.
 
 ### Citations
 
