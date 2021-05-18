@@ -1,4 +1,5 @@
 """Port of the Matlab Truncated Normal and Student's t-distribution toolbox v2.0 by Zdravko Botev"""
+from re import U
 import numpy as np
 from scipy.special import erfc, erfcx, erfcinv
 from scipy.optimize import root
@@ -131,8 +132,8 @@ def grad_psi(y, L, l, u, compute_jacobian=False):
         # dPdm
         DL = np.tile(dP, [1, d]) * L
         mx = -np.eye(d) + DL
-        xx = np.matmul(L.conj().T, DL)
         mx = mx[:d - 1, :d - 1]
+        xx = np.matmul(L.conj().T, DL)
         xx = xx[:d - 1, :d - 1]
         a = np.concatenate([xx, mx.conj().T], axis=1)
         b = np.concatenate([mx, np.eye(d - 1) * (1 + dP[:d - 1])], axis=1)
@@ -267,8 +268,8 @@ def trandn(l, u):
     # case 2: l<u<-a
     J = u < -a
     if any(J):
-        tl = -u(J)
-        tu = -l(J)
+        tl = -u[J]
+        tu = -l[J]
         x[J] = -ntail(tl, tu)
     # case 3: otherwise use inverse transform or accept-reject
     I = np.logical_not(np.logical_or(I, J))
@@ -352,6 +353,9 @@ def mv_normal_cdf(l, u, sigma, n):
     % Simulation and Estimation via Minimax Tilting_, Journal of the Royal
     % Statistical Society, Series B, Volume 79, Part 1, pp. 1-24
     """
+    # ensure l and u have 2d shape
+    l = np.reshape(l, [-1, 1])
+    u = np.reshape(u, [-1, 1])
     # Cast non-integral inputs to DTYPE
     l = l.astype(DTYPE)
     u = u.astype(DTYPE)
@@ -367,6 +371,7 @@ def mv_normal_cdf(l, u, sigma, n):
     u = u / np.expand_dims(D, 1)
     l = l / np.expand_dims(D, 1)
     L = L - np.eye(d)
+
     # find optimal tilting parameter via non-linear equation solver
     soln = root(fun=lambda x: grad_psi(x, L, l, u, True),
                 x0=np.zeros(2 * (d - 1), dtype=DTYPE),
@@ -385,3 +390,34 @@ def mv_normal_cdf(l, u, sigma, n):
         )
     upbnd = np.exp(upbnd)
     return est, rel_err, upbnd
+
+
+if __name__ == '__main__':
+    import timeit
+    n = 10
+
+    a = np.random.rand(n)
+    b = a + 1
+    print("ln_normal_pr ns per iter:",
+          1000000 * timeit.timeit(lambda: ln_normal_pr(a, b), number=1000))
+
+    sigma = np.eye(n)
+    sigma[2] += 0.01
+    sigma[:, 2] += 0.01
+    l = np.ones([n, 1])  #np.random.rand(n, 1)
+    u = 2 * l
+    mv_normal_cdf(l, u, sigma, 1000)
+    print("cholperm ns per iter:",
+          100000000 * timeit.timeit(lambda: cholperm(sigma, l, u), number=10))
+
+    d = 25
+    l = np.ones([d, 1]) / 2
+    u = np.ones([d, 1])
+    Sig = np.linalg.inv(0.5 * np.eye(d) + .5 * np.ones([d, d]))
+    print("mv_normal_cdf ns per",
+          100000000 * timeit.timeit(lambda: mv_normal_cdf(l, u, Sig, 10000),
+                                    number=10))  # output of our method
+
+# ln_phi: 6777 ns
+# ln_normal_pr: e0::4.53e4, e1::3.71e4, e2::4.16e4, e3::1.01e5
+# cholperm: e1::2.36e6, e2::2.67e7, e3::1.25e9
